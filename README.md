@@ -1,2 +1,3 @@
 # ping-pong
-realtime 2 player ping-pong web game
+
+realtime multiplayer ping-pong web game
