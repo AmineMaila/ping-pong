@@ -33,4 +33,4 @@ const updateState = (state) => {
 
 }
 
-module.exports = { initState }
+module.exports = { initState, updateState }

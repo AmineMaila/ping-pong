@@ -6,7 +6,7 @@
 		r => result Values :	w => winner
 													l => loser
 */
-const { initState } = require('./engine')
+const { initState, updateState } = require('./engine')
 
 let waitingPlayer = null
 const rooms = new Map() // Map<roomid, {[ws, ws], state}>
@@ -23,14 +23,32 @@ const game = async (fastify, options) => {
 		})
 	}
 
-	fastify.get('/:id', (request, reply) => {
-		const room = rooms.get(request.params.id)
+	const closeRoom = (intervalId, roomId, sockets) => {
+		if (sockets) {
+			sockets[0].close()
+			sockets[1].close()
+		}
+		clearInterval(intervalId)
+		rooms.delete(roomId)
+	}
+
+	const setupRoom = (roomId) => {
+		const room = rooms.get(roomId)
+
+		fastify.json(room.sockets[0], { type: 'start', index: 0 })
+		fastify.json(room.sockets[1], { type: 'start', index: 1 })
 
 		room.sockets.forEach((player, index) => {
 
 			player.on('message', (message) => {
-				const data = JSON.parse(message)
-				room.state.p[data.pid].y = data.y
+				try {
+					const data = JSON.parse(message.toString())
+					room.state.p[data.pid].y = data.y
+				} 
+				catch (e) {
+					console.log(`Room ${roomId} closed: `, e.message)
+					closeRoom(id, roomId, room.sockets)
+				}
 			})
 
 			player.on('close', () => {
@@ -38,20 +56,19 @@ const game = async (fastify, options) => {
 				if (otherPlayer.readyState === WebSocket.OPEN) { // checks if otherPlayer didn't close too
 					fastify.json(otherPlayer, { type: 'gameover', result: 'w' })
 				}
-				rooms.delete(roomId)
-				clearInterval(id)
+				closeRoom(id, roomId, room.sockets)
 			})
 		})
 
 		const id = setInterval(()=> {
 			room.sockets.forEach((player, index) => {
 				// updateState(room.state)
-				const payload = { type: 'state', state: room.state }
+				const payload = { type: 'state', state: room.packet }
 				if (player.readyState === WebSocket.OPEN)
 					fastify.json(player, payload)
 			})
 		}, 16.67)
-	})
+	}
 
 	fastify.get('/queue' , { websocket: true }, (socket, req) => {
 		if (!waitingPlayer) {
@@ -67,8 +84,7 @@ const game = async (fastify, options) => {
 				state: initState(),
 				packet: initialPacket()
 			})
-			fastify.json(player1, { type: 'start', index: 0 })
-			fastify.json(player2, { type: 'start', index: 1 })
+			setupRoom(roomId)
 		}
 
 		socket.on('close', () => {
