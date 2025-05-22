@@ -1,4 +1,6 @@
 const Fastify = require('fastify')
+const path = require('path')
+const fastifyStatic = require('@fastify/static')
 const game = require('./plugins/queue')
 const fastify = Fastify({
 	logger: {
@@ -12,14 +14,16 @@ const fastify = Fastify({
 		}
 	}
 })
-
+fastify.register(fastifyStatic, {
+	root: path.join(__dirname, 'dist')
+})
 fastify.register(require('@fastify/websocket'))
 fastify.register(game, { prefix: '/game'})
 
 
 
 
-fastify.listen({ port: 3001 }, (err) => {
+fastify.listen({ port: 3001, host: '0.0.0.0' }, (err) => {
 	if (err) {
 		console.log(err)
 		process.exit(1)

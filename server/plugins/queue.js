@@ -6,7 +6,7 @@
 		r => result Values :	w => winner
 													l => loser
 */
-const { updatePacket, updateState } = require('./physics')
+const { updatePacket, updateState, getVelocity } = require('./physics')
 
 let waitingPlayer = null
 const rooms = new Map() // Map<roomid, {[ws, ws], state}>
@@ -20,10 +20,10 @@ const game = async (fastify, options) => {
 		return ({
 			ball: {
 				rect: { x: 400, y: 300, width: 10, height: 10 },
-				speed: 10,
+				speed: 500,
 				angle: 4.16332,
 				 // precalculated values
-				velocity: { dx: -5.218932854607728, dy: -8.530107845689644 }
+				velocity: getVelocity(4.16332, 500)
 			},
 			players: [
 				{
@@ -92,7 +92,7 @@ const game = async (fastify, options) => {
 
 			intervalId = setInterval(()=> {
 				const now = Date.now()
-				const deltaTime = (lastTimeStamp - now) / 1000
+				const deltaTime = (now - lastTimeStamp) / 1000
 
 				lastTimeStamp = now
 				updateState(room.state, deltaTime)

@@ -25,7 +25,7 @@ const connect = (canvas, gameStateRef, clientRef) => {
 				gameStateRef.current.gameStatus = 'playing'
 				break;
 			case 'state':
-				gameStateRef.current.ball = { ...data.state.b }
+				gameStateRef.current.ball = { ...data.state.b, width: 10, height: 10 }
 				gameStateRef.current.players[gameStateRef.current.index ^ 1].rect.y = data.state.p
 				break;
 		}

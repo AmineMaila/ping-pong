@@ -10,7 +10,7 @@ const bounceBall = (ball, paddle, bounceDir) => {
 	ball.angle = bounceDir === 'left'
 		? Math.PI - (normalized * maxBounceAngle)
 		: normalized * maxBounceAngle
-	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (1.3 - 0.7) + 0.7), 10, 16)
+	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (50 - 100) + 100), 400, 800)
 	ball.velocity = getVelocity(ball.angle, ball.speed)
 }
 
@@ -40,10 +40,10 @@ const paddleCollision = (a, b) => {
 const resetBall = () => {
 	return ({
 		rect: { x: 400, y: 300, width: 10, heigh: 10 },
-		speed: 10,
+		speed: 500,
 		angle: 4.16332,
 		 // precalculated values
-		velocity: { dx: -5.218932854607728, dy: -8.530107845689644 }
+		velocity: getVelocity(4.16332, 500)
 	})
 }
 
@@ -60,11 +60,12 @@ const updatePacket = (gameState, index) => {
 }
 
 const updateState = (gameState, deltaTime) => {
+
 	updateBall(gameState.ball, deltaTime)
 	if (gameState.ball.rect.x < 100 && paddleCollision(gameState.ball.rect, gameState.players[0].rect)) {
-		bounceBall(gameState.ball, current, 'right')
+		bounceBall(gameState.ball, gameState.players[0].rect, 'right')
 	} else if (gameState.ball.rect.x > 700 && paddleCollision(gameState.ball.rect, gameState.players[1].rect)) {
-		bounceBall(gameState.ball, current, 'left')
+		bounceBall(gameState.ball, gameState.players[0].rect, 'left')
 	}
 
 	if (gameState.ball.rect.y < 0 || gameState.ball.rect.y + gameState.ball.rect.height > 600) {
@@ -80,4 +81,4 @@ const updateState = (gameState, deltaTime) => {
 	}
 }
 
-module.exports = { updatePacket, updateState }
+module.exports = { getVelocity, updatePacket, updateState }

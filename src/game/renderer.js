@@ -38,6 +38,7 @@ export const render = (ctx, gameState) => {
 	ctx.setLineDash([]) // resets the lineDash so that new drawn stuff doesn't draw line dash
 
 	// ball
+	// console.log('ball before render: ', gameState.ball)
 	ctx.fillRect(
 		gameState.ball.x - halfBall,
 		gameState.ball.y - halfBall,
