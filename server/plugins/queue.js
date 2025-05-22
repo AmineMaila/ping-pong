@@ -23,31 +23,35 @@ const game = async (fastify, options) => {
 		})
 	}
 
-	const closeRoom = (intervalId, roomId, sockets) => {
+	const closeRoom = (timeoutId, intervalId, roomId, sockets) => {
 		if (sockets) {
 			sockets[0].close()
 			sockets[1].close()
 		}
 		clearInterval(intervalId)
+		clearTimeout(timeoutId)
 		rooms.delete(roomId)
 	}
 
 	const setupRoom = (roomId) => {
+		let timeoutId
+		let intervalId
 		const room = rooms.get(roomId)
 
-		fastify.json(room.sockets[0], { type: 'start', index: 0 })
-		fastify.json(room.sockets[1], { type: 'start', index: 1 })
+		fastify.json(room.sockets[0], { type: 'ready', index: 0 })
+		fastify.json(room.sockets[1], { type: 'ready', index: 1 })
 
 		room.sockets.forEach((player, index) => {
 
 			player.on('message', (message) => {
 				try {
 					const data = JSON.parse(message.toString())
-					room.state.p[data.pid].y = data.y
+					// room.state.players[data.pid].y = data.y
+					room.packet.p[data.pid].y = data.y
 				} 
 				catch (e) {
-					console.log(`Room ${roomId} closed: `, e.message)
-					closeRoom(id, roomId, room.sockets)
+					console.log(`JSON parse error: `, e.message)
+					return
 				}
 			})
 
@@ -56,18 +60,22 @@ const game = async (fastify, options) => {
 				if (otherPlayer.readyState === WebSocket.OPEN) { // checks if otherPlayer didn't close too
 					fastify.json(otherPlayer, { type: 'gameover', result: 'w' })
 				}
-				closeRoom(id, roomId, room.sockets)
+				closeRoom(timeoutId, intervalId, roomId, room.sockets)
+				return
 			})
 		})
-
-		const id = setInterval(()=> {
-			room.sockets.forEach((player, index) => {
-				// updateState(room.state)
-				const payload = { type: 'state', state: room.packet }
-				if (player.readyState === WebSocket.OPEN)
-					fastify.json(player, payload)
-			})
-		}, 16.67)
+		timeoutId = setTimeout(() => {
+			fastify.json(room.sockets[0], { type: 'start' })
+			fastify.json(room.sockets[1], { type: 'start' })
+			intervalId = setInterval(()=> {
+				room.sockets.forEach((player, index) => {
+					// updateState(room.state)
+					const payload = { type: 'state', state: room.packet }
+					if (player.readyState === WebSocket.OPEN)
+						fastify.json(player, payload)
+				})
+			}, 16.67)
+		}, 3000)
 	}
 
 	fastify.get('/queue' , { websocket: true }, (socket, req) => {
