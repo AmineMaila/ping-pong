@@ -27,17 +27,21 @@ const connect = (canvas, gameStateRef, clientRef) => {
 			case 'state':
 				gameStateRef.current.ball = { ...data.state.b, width: 10, height: 10 }
 				gameStateRef.current.players[gameStateRef.current.index ^ 1].rect.y = data.state.p
+				gameStateRef.current.players[0].score = data.state.s[0]
+				gameStateRef.current.players[1].score = data.state.s[1]
 				break;
 		}
 	})
 	
-	clientRef.current.addEventListener('error', () => {
+	clientRef.current.addEventListener('error', (err) => {
+		// handle error by reconnecting
 		console.error('Error occured: ', err)
 	})
 	
 	clientRef.current.addEventListener('close', () => {
 		console.log('Disconnected from the server')
-		cleanUpInput()
+		if (cleanUpInput)
+			cleanUpInput()
 	})
 	return (() => { clientRef.current.close() })
 }

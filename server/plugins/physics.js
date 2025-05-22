@@ -52,13 +52,6 @@ const updateBall = (ball, deltaTime) => {
 	ball.rect.y += ball.velocity.dy * deltaTime
 }
 
-const updatePacket = (gameState, index) => {
-	return ({
-		b: { x: gameState.ball.rect.x, y: gameState.ball.rect.y},
-		p: gameState.players[index ^ 1].rect.y
-	})
-}
-
 const updateState = (gameState, deltaTime) => {
 
 	updateBall(gameState.ball, deltaTime)
@@ -81,4 +74,4 @@ const updateState = (gameState, deltaTime) => {
 	}
 }
 
-module.exports = { getVelocity, updatePacket, updateState }
+module.exports = { getVelocity, updateState }

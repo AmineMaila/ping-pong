@@ -6,7 +6,7 @@
 		r => result Values :	w => winner
 													l => loser
 */
-const { updatePacket, updateState, getVelocity } = require('./physics')
+const { updateState, getVelocity } = require('./physics')
 
 let waitingPlayer = null
 const rooms = new Map() // Map<roomid, {[ws, ws], state}>
@@ -41,7 +41,16 @@ const game = async (fastify, options) => {
 	const initialPacket = () => {
 		return ({
 			b: { x: 400, y: 300 }, // ball
-			p: { y: 300 } // opponent pos
+			p: { y: 300 }, // opponent pos
+			s: [0, 0]
+		})
+	}
+
+	const updatePacket = (gameState, index) => {
+		return ({
+			b: { x: gameState.ball.rect.x, y: gameState.ball.rect.y},
+			p: gameState.players[index ^ 1].rect.y,
+			s: [gameState.players[0].score, gameState.players[1].score]
 		})
 	}
 
