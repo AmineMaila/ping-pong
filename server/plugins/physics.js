@@ -4,22 +4,21 @@ const clamp = (value, min, max) => {
 	return (Math.min(max, Math.max(min, value)))
 }
 
-const bounceBall = (ball, paddle) => {
+const bounceBall = (ball, paddle, bounceDir) => {
 	const relativeY = ball.rect.y - paddle.y
 	const normalized = relativeY / (paddle.height / 2.0) // range -1.0, 1.0
-	ball.angle = ball.dir === 'right' ? Math.PI - (normalized * maxBounceAngle) : normalized * maxBounceAngle
-	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (1.3 - 0.7) + 0.7), 6, 15)
+	ball.angle = bounceDir === 'left'
+		? Math.PI - (normalized * maxBounceAngle)
+		: normalized * maxBounceAngle
+	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (1.3 - 0.7) + 0.7), 10, 16)
 	ball.velocity = getVelocity(ball.angle, ball.speed)
-	ball.dir = ball.dir === 'right' ? 'left' : 'right'
 }
 
-export const getVelocity = (angle, speed) => {
-	return (
-		{
-			dx: Math.cos(angle) * speed,
-			dy: Math.sin(angle) * speed
-		}
-	)
+const getVelocity = (angle, speed) => {
+	return ({
+		dx: Math.cos(angle) * speed,
+		dy: Math.sin(angle) * speed
+	})
 }
 
 const paddleCollision = (a, b) => {
@@ -38,33 +37,47 @@ const paddleCollision = (a, b) => {
 // 	)
 // }
 
-const updateBall = (ball, deltaTime) => {
-	ball.rect.x += ball.velocity.dx * (deltaTime / 16.67)
-	ball.rect.y += ball.velocity.dy * (deltaTime / 16.67)
+const resetBall = () => {
+	return ({
+		rect: { x: 400, y: 300, width: 10, heigh: 10 },
+		speed: 10,
+		angle: 4.16332,
+		 // precalculated values
+		velocity: { dx: -5.218932854607728, dy: -8.530107845689644 }
+	})
 }
 
-const update = (gameState, deltaTime, inputState, setScore) => {
-	gameState.paddles.player1.rect.y = inputState.clientPaddlePosition
-	gameState.paddles.player2.rect.y = inputState.clientPaddlePosition
-	const current = gameState.ball.dir === 'left' ? gameState.paddles.player1.rect : gameState.paddles.player2.rect
-	const { x: oldBallX, y: oldBallY} = gameState.ball.rect
+const updateBall = (ball, deltaTime) => {
+	ball.rect.x += ball.velocity.dx * deltaTime
+	ball.rect.y += ball.velocity.dy * deltaTime
+}
 
+const updatePacket = (gameState, index) => {
+	return ({
+		b: { x: gameState.ball.rect.x, y: gameState.ball.rect.y},
+		p: gameState.players[index ^ 1].rect.y
+	})
+}
+
+const updateState = (gameState, deltaTime) => {
 	updateBall(gameState.ball, deltaTime)
-	if (paddleCollision(gameState.ball.rect, current)) {
-		bounceBall(gameState.ball, current)
+	if (gameState.ball.rect.x < 100 && paddleCollision(gameState.ball.rect, gameState.players[0].rect)) {
+		bounceBall(gameState.ball, current, 'right')
+	} else if (gameState.ball.rect.x > 700 && paddleCollision(gameState.ball.rect, gameState.players[1].rect)) {
+		bounceBall(gameState.ball, current, 'left')
 	}
 
 	if (gameState.ball.rect.y < 0 || gameState.ball.rect.y + gameState.ball.rect.height > 600) {
-		gameState.ball.angle = -gameState.ball.angle
+		gameState.ball.angle *= -1
 		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
+		// gameState.ball.velocity.dx += 0.3
 	} else if (gameState.ball.rect.x < 0) {
-		setScore(gameState.paddle.player2.score + 1)
-		gameState.paddles.player2.score++
-		// resetBall()
+		gameState.players[1].score++
+		gameState.ball = resetBall()
 	} else if (gameState.ball.rect.x > 800) {
-		setScore(gameState.paddle.player1.score + 1)
-		gameState.paddles.player1.score++
+		gameState.players[0].score++
+		gameState.ball = resetBall()
 	}
 }
 
-export default update
+module.exports = { updatePacket, updateState }
