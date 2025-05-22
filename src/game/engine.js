@@ -30,6 +30,7 @@ let cleanUpInput
 export const initGame = (canvas, setScore) => {
 	const ctx = canvas.getContext('2d')
 
+
 	cleanUpInput = setupInputHandlers(canvas)
 
 	const gameLoop = (timestamp) => {

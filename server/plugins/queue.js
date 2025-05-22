@@ -88,6 +88,8 @@ const game = async (fastify, options) => {
 		}
 
 		socket.on('close', () => {
+			if (waitingPlayer)
+				waitingPlayer.close()
 			waitingPlayer = null
 		})
 	})
