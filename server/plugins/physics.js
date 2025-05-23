@@ -1,4 +1,5 @@
 const maxBounceAngle = 0.785398 // RAD / 45 degrees
+const BALL_RADIUS = 5
 
 const clamp = (value, min, max) => {
 	return (Math.min(max, Math.max(min, value)))
@@ -53,28 +54,51 @@ const updateBall = (ball, deltaTime) => {
 const updateState = (gameState, deltaTime) => {
 	const newBall = updateBall(gameState.ball, deltaTime)
 
+	// check bounce off left paddle
 	if (newBall.x < 100 && paddleCollision(newBall, gameState.players[0].rect)) {
-		bounceBall(gameState.ball, gameState.players[0].rect, 'right')
+		return bounceBall(gameState.ball, gameState.players[0].rect)
+	}
+	
+	// check bounce off right paddle
+	if (newBall.x > 700 && paddleCollision(newBall, gameState.players[1].rect)) {
+		return bounceBall(gameState.ball, gameState.players[1].rect)
+	}
+	
+	// top wall bounce
+	if (newBall.y - BALL_RADIUS < 0) {
+		newBall.y = BALL_RADIUS
+		gameState.ball.angle *= -1
+		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
+		gameState.ball.velocity.dx += newBall.dir === 'left' ? -15 : 15
+		gameState.ball.rect = newBall
 		return
-	} else if (newBall.x > 700 && paddleCollision(newBall, gameState.players[1].rect)) {
-		bounceBall(gameState.ball, gameState.players[1].rect, 'left')
+	}
+
+	// bottom wall bounce
+	if (newBall.y + BALL_RADIUS > 600) {
+		newBall.y = 600 - BALL_RADIUS
+		gameState.ball.angle *= -1
+		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
+		gameState.ball.velocity.dx += newBall.dir === 'left' ? -15 : 15
+		gameState.ball.rect = newBall
+		return
+	}
+
+	// right player scored
+	if (newBall.x < 0) {
+		gameState.players[1].score++
+		gameState.ball = resetBall()
+		return
+	}
+	
+	// left player scored
+	if (newBall.x > 800) {
+		gameState.players[0].score++
+		gameState.ball = resetBall()
 		return
 	}
 
 	gameState.ball.rect = newBall
-
-	if (gameState.ball.rect.y < 0 || gameState.ball.rect.y + gameState.ball.rect.height > 600) {
-		gameState.ball.angle *= -1
-		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
-		// gameState.ball.velocity.dx += 15
-	} else if (gameState.ball.rect.x < 0) {
-		gameState.players[1].score++
-		gameState.ball = resetBall()
-	} else if (gameState.ball.rect.x > 800) {
-		gameState.players[0].score++
-		gameState.ball = resetBall()
-	}
-
 }
 
 module.exports = { getVelocity, updateState }
