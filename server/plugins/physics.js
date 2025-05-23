@@ -11,7 +11,7 @@ const bounceBall = (ball, paddle) => {
 	ball.angle = ball.dir === 'right'
 		? Math.PI - (normalized * maxBounceAngle)
 		: normalized * maxBounceAngle
-	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (25 - 50) + 50), 300, 500)
+	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (0.7 - 0.3) + 0.7), 10, 16)
 	ball.velocity = getVelocity(ball.angle, ball.speed)
 	ball.dir = ball.dir === 'right' ? 'left' : 'right'
 }
@@ -35,24 +35,24 @@ const paddleCollision = (a, b) => {
 const resetBall = () => {
 	return ({
 		rect: { x: 400, y: 300, width: 10, heigh: 10 },
-		speed: 400,
+		speed: 12,
 		angle: 4.16332,
 		 // precalculated values
-		velocity: getVelocity(4.16332, 400)
+		velocity: getVelocity(4.16332, 12)
 	})
 }
 
-const updateBall = (ball, deltaTime) => {
+const updateBall = (ball) => {
 	return ({
-		x: ball.rect.x + ball.velocity.dx * deltaTime,
-		y: ball.rect.y + ball.velocity.dy * deltaTime,
+		x: ball.rect.x + ball.velocity.dx,
+		y: ball.rect.y + ball.velocity.dy,
 		width: 10,
 		height: 10
 	})
 }
 
-const updateState = (gameState, deltaTime) => {
-	const newBall = updateBall(gameState.ball, deltaTime)
+const updateState = (gameState) => {
+	const newBall = updateBall(gameState.ball)
 
 	// check bounce off left paddle
 	if (newBall.x < 100 && paddleCollision(newBall, gameState.players[0].rect)) {
@@ -66,20 +66,22 @@ const updateState = (gameState, deltaTime) => {
 	
 	// top wall bounce
 	if (newBall.y - BALL_RADIUS < 0) {
+		// snap back to edge
 		newBall.y = BALL_RADIUS
 		gameState.ball.angle *= -1
 		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
-		gameState.ball.velocity.dx += newBall.dir === 'left' ? -15 : 15
+		// gameState.ball.velocity.dx += newBall.dir === 'left' ? 2 : -2
 		gameState.ball.rect = newBall
 		return
 	}
 
 	// bottom wall bounce
 	if (newBall.y + BALL_RADIUS > 600) {
+		// snap back to edge
 		newBall.y = 600 - BALL_RADIUS
 		gameState.ball.angle *= -1
 		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
-		gameState.ball.velocity.dx += newBall.dir === 'left' ? -15 : 15
+		// gameState.ball.velocity.dx += newBall.dir === 'left' ? 2 : -2
 		gameState.ball.rect = newBall
 		return
 	}
@@ -88,6 +90,8 @@ const updateState = (gameState, deltaTime) => {
 	if (newBall.x < 0) {
 		gameState.players[1].score++
 		gameState.ball = resetBall()
+		gameState.pause = true
+		setTimeout(() => gameState.pause = false, 500)
 		return
 	}
 	
@@ -95,6 +99,8 @@ const updateState = (gameState, deltaTime) => {
 	if (newBall.x > 800) {
 		gameState.players[0].score++
 		gameState.ball = resetBall()
+		gameState.pause = true
+		setTimeout(() => gameState.pause = false, 500)
 		return
 	}
 

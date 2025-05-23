@@ -20,11 +20,11 @@ const game = async (fastify, options) => {
 		return ({
 			ball: {
 				rect: { x: 400, y: 300, width: 10, height: 10 },
-				speed: 400,
+				speed: 12,
 				angle: 4.16332,
 				dir: 'left',
 				 // precalculated values
-				velocity: getVelocity(4.16332, 400)
+				velocity: getVelocity(4.16332, 12)
 			},
 			players: [
 				{
@@ -35,7 +35,9 @@ const game = async (fastify, options) => {
 					rect: { x: 770, y: 300, width: 10, height: 60 },
 					score: 0
 				}
-			]
+			],
+			status: '',
+			pause: true
 		})
 	}
 
@@ -95,17 +97,14 @@ const game = async (fastify, options) => {
 			})
 		})
 		timeoutId = setTimeout(() => {
-			let lastTimeStamp = Date.now()
-
 			fastify.json(room.players[0].socket, { type: 'start' })
 			fastify.json(room.players[1].socket, { type: 'start' })
+			room.state.pause = false
+		}, 3000)
 
 			intervalId = setInterval(()=> {
-				const now = Date.now()
-				const deltaTime = (now - lastTimeStamp) / 1000
-
-				lastTimeStamp = now
-				updateState(room.state, deltaTime)
+				if (!room.state.pause)
+					updateState(room.state)
 
 				room.players.forEach((player, index) => {
 					player.packet = updatePacket(room.state, index)
@@ -115,7 +114,6 @@ const game = async (fastify, options) => {
 						fastify.json(player.socket, payload)
 				})
 			}, 16.67)
-		}, 3000)
 	}
 
 	fastify.get('/queue' , { websocket: true }, (socket, req) => {

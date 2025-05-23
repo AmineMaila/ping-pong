@@ -1,7 +1,7 @@
 import { setupInputHandlers } from "./input"
 
 let cleanUpInput
-
+let lastUpdate = Date.now()
 const connect = (canvas, gameStateRef, clientRef) => {
 	clientRef.current = new WebSocket('ws://localhost:3001/game/queue')
 
@@ -11,6 +11,9 @@ const connect = (canvas, gameStateRef, clientRef) => {
 	})
 
 	clientRef.current.addEventListener('message', async (message) => {
+		const now = performance.now()
+		console.log('Time elapsed: ', now - lastUpdate)
+		lastUpdate = now
 		const data = JSON.parse(message.data)
 		console.log('Received Data => ', data)
 		switch (data.type) {
