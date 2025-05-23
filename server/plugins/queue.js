@@ -20,10 +20,11 @@ const game = async (fastify, options) => {
 		return ({
 			ball: {
 				rect: { x: 400, y: 300, width: 10, height: 10 },
-				speed: 500,
+				speed: 400,
 				angle: 4.16332,
+				dir: 'left',
 				 // precalculated values
-				velocity: getVelocity(4.16332, 500)
+				velocity: getVelocity(4.16332, 400)
 			},
 			players: [
 				{
