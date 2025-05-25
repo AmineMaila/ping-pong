@@ -1,6 +1,38 @@
 const halfPaddle = 30
 const halfBall = 5
 
+const lerp = (delayed, current, factor) => {
+	return (delayed + (current - delayed) * factor)
+}
+
+export const update = (gameState, deltaTime) => {
+	gameState.ball.x += gameState.ball.dx * deltaTime
+	gameState.ball.y += gameState.ball.dy * deltaTime
+
+	if (gameState.ball.y - halfBall < 0) {
+		gameState.ball.y = halfBall
+		gameState.ball.dy *= -1
+	} else if (gameState.ball.y + halfBall > 600) {
+		gameState.ball.y = 600 - halfBall
+		gameState.ball.dy *= -1
+	}
+
+	const timeSinceSync = performance.now() - gameState.ball.lastServerSync
+
+	// correct if sync is recent
+	if (timeSinceSync < 500) {
+		const correctionFactor = Math.min(0.02, deltaTime * 2)
+		gameState.ball.x = lerp(gameState.ball.x, gameState.ball.serverX, correctionFactor)
+		gameState.ball.y = lerp(gameState.ball.y, gameState.ball.serverY, correctionFactor)
+	}
+
+	gameState.players[gameState.index ^ 1].rect.y = lerp(
+		gameState.players[gameState.index ^ 1].rect.y,
+		gameState.serverPlayerY,
+		0.5
+	)
+}
+
 export const render = (ctx, gameState) => {
 	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height) // clears the canvas
 	ctx.fillStyle = 'white' // fill color
@@ -61,5 +93,3 @@ export const render = (ctx, gameState) => {
 		)
 	}
 }
-
-export default render

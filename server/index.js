@@ -1,7 +1,7 @@
 const Fastify = require('fastify')
 const path = require('path')
 const fastifyStatic = require('@fastify/static')
-const game = require('./plugins/queue')
+const { game } = require('./plugins/queue')
 const fastify = Fastify({
 	logger: {
 		level: 'info',
