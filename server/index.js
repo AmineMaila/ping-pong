@@ -14,13 +14,9 @@ const fastify = Fastify({
 		}
 	}
 })
-fastify.register(fastifyStatic, {
-	root: path.join(__dirname, 'dist')
-})
+fastify.register(fastifyStatic, { root: path.join(__dirname, 'dist') })
 fastify.register(require('@fastify/websocket'))
 fastify.register(game, { prefix: '/game'})
-
-
 
 
 fastify.listen({ port: 3001, host: '0.0.0.0' }, (err) => {

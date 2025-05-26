@@ -2,6 +2,8 @@ import render from "./renderer"
 
 const initGameState = () => {
 	return ({
+		serverPlayerY: 300,
+		serverBall: { x: 400, y: 300, width: 10, height: 10 },
 		ball: { x: 400, y: 300, width: 10, height: 10 },
 		players:[
 			{
@@ -22,12 +24,33 @@ const initGameState = () => {
 let animationFrameId
 let cleanUpInput
 
+const lerp = (delayed, current, factor) => {
+	return ((current - delayed) * factor)
+}
+
+const update = (gameState) => {
+	gameState.ball.x += lerp(gameState.ball.x, gameState.serverBall.x, 0.5)
+	gameState.ball.y += lerp(gameState.ball.y, gameState.serverBall.y, 0.5)
+
+	gameState.players[gameState.index ^ 1].rect.y += lerp(
+		gameState.players[gameState.index ^ 1].rect.y,
+		gameState.serverPlayerY,
+		0.4
+	)
+}
+
 export const initGame = (gameStateRef, canvas) => {
 	const ctx = canvas.getContext('2d')
 	
 	gameStateRef.current = initGameState()
 
+	// setInterval(() => {
+	// 	update(gameStateRef.current)
+	// 	render(ctx, gameStateRef.current)
+	// }, 1000 / 120)
+
 	const gameLoop = (timestamp) => {
+		update(gameStateRef.current)
 		render(ctx, gameStateRef.current)
 		gameStateRef.current.lastUpdateTime = timestamp
 		animationFrameId = requestAnimationFrame(gameLoop)

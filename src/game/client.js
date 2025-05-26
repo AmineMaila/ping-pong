@@ -1,7 +1,7 @@
 import { setupInputHandlers } from "./input"
 
 let cleanUpInput
-let lastUpdate = Date.now()
+
 const connect = (canvas, gameStateRef, clientRef) => {
 	clientRef.current = new WebSocket('ws://localhost:3001/game/queue')
 
@@ -11,9 +11,6 @@ const connect = (canvas, gameStateRef, clientRef) => {
 	})
 
 	clientRef.current.addEventListener('message', async (message) => {
-		const now = performance.now()
-		console.log('Time elapsed: ', now - lastUpdate)
-		lastUpdate = now
 		const data = JSON.parse(message.data)
 		console.log('Received Data => ', data)
 		switch (data.type) {
@@ -22,14 +19,16 @@ const connect = (canvas, gameStateRef, clientRef) => {
 				break;
 			case 'ready':
 				gameStateRef.current.gameStatus = 'ready'
-				gameStateRef.current.index = data.index
+				gameStateRef.current.index = data.i
 				break;
 			case 'start':
 				gameStateRef.current.gameStatus = 'playing'
 				break;
 			case 'state':
-				gameStateRef.current.ball = { ...data.state.b, width: 10, height: 10 }
-				gameStateRef.current.players[gameStateRef.current.index ^ 1].rect.y = data.state.p
+				gameStateRef.current.serverBall = data.state.b
+				// gameStateRef.current.ball = { ...data.state.b, width: 10, height: 10 }
+				gameStateRef.current.serverPlayerY = data.state.p
+				// gameStateRef.current.players[gameStateRef.current.index ^ 1].rect.y = data.state.p
 				gameStateRef.current.players[0].score = data.state.s[0]
 				gameStateRef.current.players[1].score = data.state.s[1]
 				break;

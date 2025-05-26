@@ -1,4 +1,6 @@
 const maxBounceAngle = 0.785398 // RAD / 45 degrees
+const PADDLE_WIDTH = 10
+const PADDLE_HEIGHT = 60
 const BALL_RADIUS = 5
 
 const clamp = (value, min, max) => {
@@ -6,12 +8,12 @@ const clamp = (value, min, max) => {
 }
 
 const bounceBall = (ball, paddle) => {
-	const relativeY = ball.rect.y - paddle.y
-	const normalized = relativeY / (paddle.height / 2.0) // range -1.0, 1.0
+	const relativeY = ball.y - paddle.y
+	const normalized = relativeY / (PADDLE_HEIGHT / 2.0) // range -1.0, 1.0
 	ball.angle = ball.dir === 'right'
 		? Math.PI - (normalized * maxBounceAngle)
 		: normalized * maxBounceAngle
-	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (0.7 - 0.3) + 0.7), 10, 16)
+	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (0.7 - 0.3) + 0.7), 6, 12)
 	ball.velocity = getVelocity(ball.angle, ball.speed)
 	ball.dir = ball.dir === 'right' ? 'left' : 'right'
 }
@@ -23,88 +25,82 @@ const getVelocity = (angle, speed) => {
 	})
 }
 
-const paddleCollision = (a, b) => {
-	return (
-		a.x + a.width >= b.x &&
-		a.y + a.height >= b.y &&
-		a.x <= b.x + b.width &&
-		a.y <= b.y + b.height
+const paddleCollision = (ball, paddle) => {
+	const dx = Math.abs(ball.x - paddle.x)
+	const dy = Math.abs(ball.y - paddle.y)
+
+	return(
+		dx <= BALL_RADIUS + (PADDLE_WIDTH / 2) &&
+		dy <= BALL_RADIUS + (PADDLE_HEIGHT / 2)
 	)
 }
 
 const resetBall = () => {
 	return ({
-		rect: { x: 400, y: 300, width: 10, heigh: 10 },
+		x: 400,
+		y: 300,
 		speed: 12,
 		angle: 4.16332,
-		 // precalculated values
 		velocity: getVelocity(4.16332, 12)
 	})
 }
 
 const updateBall = (ball) => {
 	return ({
-		x: ball.rect.x + ball.velocity.dx,
-		y: ball.rect.y + ball.velocity.dy,
-		width: 10,
-		height: 10
+		x: ball.x + ball.velocity.dx,
+		y: ball.y + ball.velocity.dy,
 	})
 }
 
 const updateState = (gameState) => {
 	const newBall = updateBall(gameState.ball)
 
-	// check bounce off left paddle
-	if (newBall.x < 100 && paddleCollision(newBall, gameState.players[0].rect)) {
-		return bounceBall(gameState.ball, gameState.players[0].rect)
+	if (newBall.x < 100 && paddleCollision(newBall, gameState.players[0])) {
+		// gameState.ball.x = gameState.players[0].x + PADDLE_RADIUS
+		return bounceBall(gameState.ball, gameState.players[0])
 	}
 	
 	// check bounce off right paddle
-	if (newBall.x > 700 && paddleCollision(newBall, gameState.players[1].rect)) {
-		return bounceBall(gameState.ball, gameState.players[1].rect)
+	if (newBall.x > 700 && paddleCollision(newBall, gameState.players[1])) {
+		return bounceBall(gameState.ball, gameState.players[1])
 	}
 	
 	// top wall bounce
 	if (newBall.y - BALL_RADIUS < 0) {
-		// snap back to edge
-		newBall.y = BALL_RADIUS
+		gameState.ball.y = BALL_RADIUS
 		gameState.ball.angle *= -1
 		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
-		// gameState.ball.velocity.dx += newBall.dir === 'left' ? 2 : -2
-		gameState.ball.rect = newBall
 		return
 	}
 
 	// bottom wall bounce
 	if (newBall.y + BALL_RADIUS > 600) {
-		// snap back to edge
-		newBall.y = 600 - BALL_RADIUS
+		gameState.ball.y = 600 - BALL_RADIUS
 		gameState.ball.angle *= -1
 		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
-		// gameState.ball.velocity.dx += newBall.dir === 'left' ? 2 : -2
-		gameState.ball.rect = newBall
 		return
 	}
 
 	// right player scored
 	if (newBall.x < 0) {
-		gameState.players[1].score++
+		gameState.score[1]++
 		gameState.ball = resetBall()
 		gameState.pause = true
-		setTimeout(() => gameState.pause = false, 500)
+		setTimeout(() => gameState.pause = false, 300)
 		return
 	}
 	
 	// left player scored
 	if (newBall.x > 800) {
-		gameState.players[0].score++
+		gameState.score[0]++
 		gameState.ball = resetBall()
 		gameState.pause = true
-		setTimeout(() => gameState.pause = false, 500)
+		setTimeout(() => gameState.pause = false, 300)
 		return
 	}
 
-	gameState.ball.rect = newBall
+	gameState.ball.x = newBall.x
+	gameState.ball.y = newBall.y
 }
 
 module.exports = { getVelocity, updateState }
