@@ -12,7 +12,6 @@ const connect = (canvas, gameStateRef, clientRef) => {
 
 	clientRef.current.addEventListener('message', async (message) => {
 		const data = JSON.parse(message.data)
-		console.log('Received Data => ', data)
 		switch (data.type) {
 			case 'waiting':
 				gameStateRef.current.gameStatus = 'waiting'
@@ -26,9 +25,7 @@ const connect = (canvas, gameStateRef, clientRef) => {
 				break;
 			case 'state':
 				gameStateRef.current.serverBall = data.state.b
-				// gameStateRef.current.ball = { ...data.state.b, width: 10, height: 10 }
 				gameStateRef.current.serverPlayerY = data.state.p
-				// gameStateRef.current.players[gameStateRef.current.index ^ 1].rect.y = data.state.p
 				gameStateRef.current.players[0].score = data.state.s[0]
 				gameStateRef.current.players[1].score = data.state.s[1]
 				break;

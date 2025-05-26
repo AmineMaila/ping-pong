@@ -13,7 +13,7 @@ const bounceBall = (ball, paddle) => {
 	ball.angle = ball.dir === 'right'
 		? Math.PI - (normalized * maxBounceAngle)
 		: normalized * maxBounceAngle
-	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (0.7 - 0.3) + 0.7), 6, 12)
+	ball.speed = clamp(ball.speed * (Math.abs(normalized) * (0.7 - 0.3) + 0.7), 7, 11)
 	ball.velocity = getVelocity(ball.angle, ball.speed)
 	ball.dir = ball.dir === 'right' ? 'left' : 'right'
 }
@@ -39,9 +39,9 @@ const resetBall = () => {
 	return ({
 		x: 400,
 		y: 300,
-		speed: 12,
+		speed: 8,
 		angle: 4.16332,
-		velocity: getVelocity(4.16332, 12)
+		velocity: getVelocity(4.16332, 8)
 	})
 }
 
@@ -55,13 +55,15 @@ const updateBall = (ball) => {
 const updateState = (gameState) => {
 	const newBall = updateBall(gameState.ball)
 
-	if (newBall.x < 100 && paddleCollision(newBall, gameState.players[0])) {
-		// gameState.ball.x = gameState.players[0].x + PADDLE_RADIUS
+	// check bounce off left paddle
+	if (newBall.x < gameState.players[0].x + 5 && paddleCollision(newBall, gameState.players[0])) {
+		gameState.ball.x = gameState.players[0].x + 5
 		return bounceBall(gameState.ball, gameState.players[0])
 	}
 	
 	// check bounce off right paddle
-	if (newBall.x > 700 && paddleCollision(newBall, gameState.players[1])) {
+	if (newBall.x > gameState.players[1].x - 5 && paddleCollision(newBall, gameState.players[1])) {
+		gameState.ball.x = gameState.players[1].x - 5
 		return bounceBall(gameState.ball, gameState.players[1])
 	}
 	
@@ -69,7 +71,7 @@ const updateState = (gameState) => {
 	if (newBall.y - BALL_RADIUS < 0) {
 		gameState.ball.y = BALL_RADIUS
 		gameState.ball.angle *= -1
-		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
+		gameState.ball.velocity.dy *= -1
 		return
 	}
 
@@ -77,7 +79,7 @@ const updateState = (gameState) => {
 	if (newBall.y + BALL_RADIUS > 600) {
 		gameState.ball.y = 600 - BALL_RADIUS
 		gameState.ball.angle *= -1
-		gameState.ball.velocity = getVelocity(gameState.ball.angle, gameState.ball.speed)
+		gameState.ball.velocity.dy *= -1
 		return
 	}
 

@@ -39,12 +39,22 @@ export const render = (ctx, gameState) => {
 
 	// ball
 	// console.log('ball before render: ', gameState.ball)
-	ctx.fillRect(
-		gameState.ball.x - halfBall,
-		gameState.ball.y - halfBall,
-		gameState.ball.width,
-		gameState.ball.height
-	)
+	// ctx.fillRect(
+	// 	gameState.ball.x - halfBall,
+	// 	gameState.ball.y - halfBall,
+	// 	gameState.ball.width,
+	// 	gameState.ball.height
+	// )
+
+	ctx.beginPath();
+	ctx.arc(
+		gameState.ball.x,           // x position (center of the ball)
+		gameState.ball.y,           // y position (center of the ball)
+		gameState.ball.width / 2,   // radius (assuming width = height)
+		0,                          // start angle
+		2 * Math.PI                 // end angle (full circle)
+	);
+	ctx.fill();
 
 	ctx.font = '24px "Serious2b"';
 	ctx.textAlign = 'center';
@@ -60,6 +70,7 @@ export const render = (ctx, gameState) => {
 			gameState.players[gameState.index].rect.y - 80
 		)
 	}
+
 }
 
 export default render
