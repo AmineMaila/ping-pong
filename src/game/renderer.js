@@ -37,14 +37,9 @@ export const render = (ctx, gameState) => {
 	ctx.stroke() // sets the outline color to the previously set stroke color
 	ctx.setLineDash([]) // resets the lineDash so that new drawn stuff doesn't draw line dash
 
-	// ball
-	// console.log('ball before render: ', gameState.ball)
-	// ctx.fillRect(
-	// 	gameState.ball.x - halfBall,
-	// 	gameState.ball.y - halfBall,
-	// 	gameState.ball.width,
-	// 	gameState.ball.height
-	// )
+	ctx.font = '24px "Serious2b"';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
 
 	ctx.beginPath();
 	ctx.arc(
@@ -56,19 +51,23 @@ export const render = (ctx, gameState) => {
 	);
 	ctx.fill();
 
-	ctx.font = '24px "Serious2b"';
-	ctx.textAlign = 'center';
-	ctx.textBaseline = 'middle';
 	if (gameState.gameStatus === 'connecting') {
 		ctx.fillText('Connecting...', ctx.canvas.width / 2, ctx.canvas.height / 2);
-	} else if (gameState.gameStatus === 'waiting') {
+		return
+	}
+
+	if (gameState.gameStatus === 'waiting') {
 		ctx.fillText('waiting for opponent...', ctx.canvas.width / 2, ctx.canvas.height / 2);
-	} else if (gameState.gameStatus === 'ready') {
+		return
+	}
+	
+	if (gameState.gameStatus === 'ready') {
 		ctx.fillText(
 			'You',
 			gameState.players[gameState.index].rect.x,
 			gameState.players[gameState.index].rect.y - 80
 		)
+		return
 	}
 
 }
