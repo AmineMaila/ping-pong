@@ -7,6 +7,7 @@
 													l => loser
 */
 const { updateState, getVelocity } = require('./physics')
+const WebSocket = require('ws')
 
 let waitingPlayer = null
 const rooms = new Map() // Map<roomid, {[ws, ws], state}>
